@@ -1,0 +1,14 @@
+{
+  "faqs": {
+    "what is the nextgen supercomputing club": "We're a student-led club founded in 2025, dedicated to exploring high-performance computing and its applications in AI, scientific simulations, and big data. We offer hands-on learning, access to advanced hardware like NVIDIA DGX systems, and a community of tech enthusiasts. Our motto is 'Compute the Future, Today!'",
+    "how to join": "Anyone passionate about computing can join! Students, faculty, and professionals from any discipline are welcome. No prior HPC experience required. Sign up at our inauguration or email nextgenclub@university.edu.",
+    "what will the club do": "We host workshops on GPU programming, MPI, quantum computing basics, and provide access to NVIDIA DGX systems. You can work on projects like AI model training, parallel algorithm optimization, or quantum system simulations.",
+    "what is supercomputing": "Supercomputing involves using powerful computers to solve complex problems at incredible speeds. Think AI training, climate modeling, or drug discovery. The Frontier supercomputer achieves 1.1 exaFLOPS, performing quintillions of calculations per second!",
+    "whats the first event": "Our inauguration hackathon on October 15, 2025, where you'll build projects on our NVIDIA DGX system. It's a fun, collaborative way to kick off the club with prizes including cloud credits and mentorship sessions.",
+    "what kind of projects": "You can develop AI models, optimize parallel algorithms, or simulate quantum systems. Past projects include neural network training, molecular dynamics, and climate simulations. We support all skill levels.",
+    "do i need coding experience": "Not at all! We offer beginner-friendly workshops on Python, CUDA, and MPI. Our community supports all skill levels, from novices to experts.",
+    "what resources": "We provide access to NVIDIA DGX systems, cloud HPC platforms, and software like TensorFlow, PyTorch, and OpenMPI. Plus, mentorship from industry experts and faculty members.",
+    "whats exascale computing": "Exascale computers perform over a quintillion calculations per second - that's 10 to the 18th power! They're key for AI, physics simulations, and big data analytics.",
+    "why should i care about hpc": "HPC powers breakthroughs in AI, medicine, and climate science. Learning HPC skills opens doors to careers in tech, research, and innovation."
+  }
+}
