@@ -105,6 +105,11 @@ import subprocess
 import sys
 from pydub import AudioSegment
 
+if sys.platform == "win32":
+    command = "where"
+else:
+    command = "which"
+
 def play_audio(path):
     """
     Robust audio playback with multiple fallback methods.
@@ -136,38 +141,38 @@ def try_system_players(path):
     try:
         if path.endswith('.mp3'):
             # Try mpg123 first (lightweight MP3 player)
-            result = subprocess.run(['which', 'mpg123'], capture_output=True)
+            result = subprocess.run([command, 'mpg123'], capture_output=True)
             if result.returncode == 0:
                 subprocess.run(['mpg123', '-q', path], check=True)
                 return True
             
             # Try ffplay (from ffmpeg)
-            result = subprocess.run(['which', 'ffplay'], capture_output=True)
+            result = subprocess.run([command, 'ffplay'], capture_output=True)
             if result.returncode == 0:
                 subprocess.run(['ffplay', '-autoexit', '-nodisp', path], check=True)
                 return True
             
             # Try vlc
-            result = subprocess.run(['which', 'cvlc'], capture_output=True)
+            result = subprocess.run([command, 'cvlc'], capture_output=True)
             if result.returncode == 0:
                 subprocess.run(['cvlc', '--play-and-exit', path], check=True)
                 return True
         
         else:  # For WAV files
             # Try aplay (ALSA player)
-            result = subprocess.run(['which', 'aplay'], capture_output=True)
+            result = subprocess.run([command, 'aplay'], capture_output=True)
             if result.returncode == 0:
                 subprocess.run(['aplay', path], check=True)
                 return True
             
             # Try paplay (PulseAudio player)
-            result = subprocess.run(['which', 'paplay'], capture_output=True)
+            result = subprocess.run([command, 'paplay'], capture_output=True)
             if result.returncode == 0:
                 subprocess.run(['paplay', path], check=True)
                 return True
             
             # Try play (from sox)
-            result = subprocess.run(['which', 'play'], capture_output=True)
+            result = subprocess.run([command, 'play'], capture_output=True)
             if result.returncode == 0:
                 subprocess.run(['play', path], check=True)
                 return True
@@ -241,7 +246,7 @@ def check_audio_dependencies():
     available = []
     
     for player in players:
-        result = subprocess.run(['which', player], capture_output=True)
+        result = subprocess.run([command, player], capture_output=True)
         if result.returncode == 0:
             available.append(player)
     

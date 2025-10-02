@@ -1,5 +1,7 @@
 .env
 /env
+.venv
+/venv
 /backups
 test_audio.py
 web
