@@ -1,4 +1,13 @@
 .env
 /env
+
+.venv
+/venv
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
 /backups
 test_audio.py

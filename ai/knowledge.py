@@ -10,8 +10,14 @@ class EnhancedRAG:
         self.faq_file = faq_file
         self.faqs = {}  # {question: answer}
         self.questions_list = []
-        self.vectorizer = TfidfVectorizer(stop_words='english', lowercase=True)
+        self.vectorizer = TfidfVectorizer(
+            stop_words='english', 
+            lowercase=True,
+            max_features=1000,  # Limit features for speed
+            ngram_range=(1, 2)  # Include bigrams for better matching
+        )
         self.tfidf_matrix = None
+        self._similarity_cache = {}  # Cache for repeated queries
         self._load_initial_faqs()
         
     def _load_initial_faqs(self):
@@ -81,7 +87,7 @@ class EnhancedRAG:
         self._save_to_json()
         print(f"✅ Added new FAQ: '{question}'")
     
-    def find_best_match(self, user_question: str, similarity_threshold: float = 0.4) -> Optional[str]:
+    def find_best_match(self, user_question: str, similarity_threshold: float = 0.3) -> Optional[str]:
         """
         Find the best matching FAQ using TF-IDF cosine similarity.
         
@@ -101,6 +107,13 @@ class EnhancedRAG:
         if user_question_clean in self.faqs:
             return self.faqs[user_question_clean]
         
+        # Check cache for repeated queries
+        if user_question_clean in self._similarity_cache:
+            cached_result = self._similarity_cache[user_question_clean]
+            if cached_result:
+                return self.faqs[cached_result]
+            return None
+        
         # TF-IDF similarity matching
         try:
             user_vector = self.vectorizer.transform([user_question_clean])
@@ -111,10 +124,10 @@ class EnhancedRAG:
             
             if best_similarity > similarity_threshold:
                 best_question = self.questions_list[best_match_idx]
-                print(f"✅ FAQ Match: similarity={best_similarity:.3f} for '{user_question}' -> '{best_question}'")
+                self._similarity_cache[user_question_clean] = best_question  # Cache result
                 return self.faqs[best_question]
             else:
-                print(f"❌ No good FAQ match. Best similarity: {best_similarity:.3f}")
+                self._similarity_cache[user_question_clean] = None  # Cache negative result
                 return None
                 
         except Exception as e:

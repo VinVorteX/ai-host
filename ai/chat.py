@@ -1,8 +1,12 @@
 from openai import OpenAI
-from config import OPENAI_API_KEY, OPENAI_MODEL_CHAT, SYSTEM_PROMPT
+from config import OPENAI_API_KEY, OPENAI_MODEL_CHAT, SYSTEM_PROMPT, MAX_TOKENS, TEMPERATURE, HTTP_TIMEOUT, MAX_RETRIES
 from .knowledge import simple_rag_lookup, faq_system
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = OpenAI(
+    api_key=OPENAI_API_KEY,
+    timeout=HTTP_TIMEOUT,
+    max_retries=MAX_RETRIES
+)
 
 def ask_chatgpt(question: str, system_prompt: str = SYSTEM_PROMPT) -> str:
     """
@@ -35,8 +39,9 @@ def ask_chatgpt(question: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         response = client.chat.completions.create(
             model=OPENAI_MODEL_CHAT,
             messages=messages,
-            max_tokens=300,
-            temperature=0.7
+            max_tokens=MAX_TOKENS,
+            temperature=TEMPERATURE,
+            stream=False
         )
         text = response.choices[0].message.content.strip()
         print(f"🤖 ChatGPT response generated.")

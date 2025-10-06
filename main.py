@@ -1,7 +1,8 @@
 import os
 import asyncio
 import tempfile
-from config import OPENAI_API_KEY
+from concurrent.futures import ThreadPoolExecutor
+from config import OPENAI_API_KEY, RECORD_SECONDS
 from audio.recorder import record_to_wav
 from audio.stt import transcribe_with_whisper
 from audio.tts import tts_with_openai, tts_with_pyttsx3
@@ -10,30 +11,40 @@ from utils.audio_player import play_audio, check_audio_dependencies
 
 
 async def process_interaction():
-    """Process one complete interaction cycle"""
-    # Record audio
+    """Process one complete interaction cycle with optimized pipeline"""
+    # Record audio with reduced duration
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpwav:
         wav_path = tmpwav.name
 
-    record_to_wav(wav_path)
+    record_to_wav(wav_path, seconds=RECORD_SECONDS)
 
-    # Transcribe
-    try:
-        user_text = transcribe_with_whisper(wav_path)
-    except Exception as e:
-        print(f"❌ Transcription failed: {e}")
-        return None
+    # Use thread pool for CPU-bound operations
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        # Transcribe
+        try:
+            user_text = await asyncio.get_event_loop().run_in_executor(
+                executor, transcribe_with_whisper, wav_path
+            )
+        except Exception as e:
+            print(f"❌ Transcription failed: {e}")
+            os.unlink(wav_path)
+            return None
 
-    if not user_text:
-        print("❌ No speech detected.")
-        return None
+        if not user_text:
+            print("❌ No speech detected.")
+            os.unlink(wav_path)
+            return None
 
-    print(f"🎯 User question: '{user_text}'")
+        print(f"🎯 User question: '{user_text}'")
 
-    # Generate response (RAG-powered)
-    response_text = ask_chatgpt(user_text)
+        # Generate response (RAG-powered) - run in executor for better performance
+        response_text = await asyncio.get_event_loop().run_in_executor(
+            executor, ask_chatgpt, user_text
+        )
 
-    # Generate TTS
+    # Generate TTS concurrently with cleanup
+    cleanup_task = asyncio.create_task(asyncio.to_thread(os.unlink, wav_path))
+    
     out_audio = None
     try:
         # Try OpenAI TTS first
@@ -44,25 +55,30 @@ async def process_interaction():
         print("❌ OpenAI TTS failed, trying pyttsx3...")
         try:
             tts_out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
-            tts_with_pyttsx3(response_text, tts_out)
+            with ThreadPoolExecutor() as executor:
+                await asyncio.get_event_loop().run_in_executor(
+                    executor, tts_with_pyttsx3, response_text, tts_out
+                )
             out_audio = tts_out
         except Exception as e2:
             print(f"❌ All TTS methods failed: {e2}")
             print("📝 Response text:")
             print(response_text)
+            await cleanup_task
             return response_text
 
-    # Play audio
+    # Play audio and cleanup concurrently
     if out_audio:
-        play_audio(out_audio)
-
-    # Cleanup
-    try:
-        os.unlink(wav_path)
-        if out_audio and os.path.exists(out_audio):
+        play_task = asyncio.create_task(asyncio.to_thread(play_audio, out_audio))
+        await asyncio.gather(play_task, cleanup_task, return_exceptions=True)
+        
+        # Cleanup TTS file
+        try:
             os.unlink(out_audio)
-    except Exception:
-        pass
+        except Exception:
+            pass
+    else:
+        await cleanup_task
 
     return response_text
 
