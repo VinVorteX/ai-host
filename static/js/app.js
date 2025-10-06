@@ -11,8 +11,22 @@ const visualizer = document.getElementById('visualizer');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    addMessage('assistant', 'Hello! I\'m your NextGen AI Assistant. How can I help you today?');
+    initGeminiEffect();
+    addMessage('assistant', 'Namaste! I\'m Chetak, your AI assistant. How can I help you today?');
 });
+
+// Gemini Effect Animation
+function initGeminiEffect() {
+    const svg = document.querySelector('.gemini-svg');
+    if (!svg) return;
+    
+    // Subtle parallax effect on mouse move
+    document.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 20;
+        const y = (e.clientY / window.innerHeight - 0.5) * 20;
+        svg.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+    });
+}
 
 // Microphone button
 micBtn.addEventListener('click', async () => {
@@ -136,7 +150,7 @@ function addMessage(role, content, audioData = null) {
 
     const avatar = document.createElement('div');
     avatar.className = 'message-avatar';
-    avatar.textContent = role === 'user' ? '👤' : '🤖';
+    avatar.textContent = role === 'user' ? '👤' : '🐴';
 
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';

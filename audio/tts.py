@@ -40,8 +40,8 @@ async def tts_with_openai(text, out_path, use_clone=USE_VOICE_CLONE):
         response = client.audio.speech.create(
             model=TTS_MODEL,
             voice=TTS_VOICE,
-            input=text[:500],
-            speed=1.1
+            input=text[:350],
+            speed=1.2
         )
         response.stream_to_file(out_path)
         print(f"✅ TTS saved to {out_path}")

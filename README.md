@@ -1,6 +1,6 @@
-# 🚀 Chetak
+# 🐴 Chetak - NextGen AI Assistant
 
-An intelligent voice-powered AI assistant with RAG (Retrieval-Augmented Generation), voice cloning, and ultra-low latency. Built for the NextGen Supercomputing Club.
+Chetak is an intelligent voice-powered AI assistant with RAG (Retrieval-Augmented Generation), voice cloning, and ultra-low latency. Built for the NextGen Supercomputing Club.
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -53,17 +53,21 @@ python main.py
 
 ```bash
 python app.py
-# Open http://localhost:5000
+# Open http://localhost:5000 - Main assistant
+# Open http://localhost:5000/demo - Gemini effect demo
 ```
 
 ## 🎨 Web Interface
 
 Modern, responsive UI with:
+- **Google Gemini-style animated background** with glowing SVG paths
 - Voice visualization during recording
 - Real-time transcription display
 - Animated AI responses
-- Dark/light theme support
+- Parallax mouse effects
 - Mobile-friendly design
+
+Visit `/demo` for the full Gemini effect showcase!
 
 ## 🔧 Configuration
 

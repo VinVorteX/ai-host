@@ -31,7 +31,12 @@ class EnhancedRAG:
     def _load_hardcoded_faqs(self):
         """Your original hardcoded FAQs"""
         self.faqs = {
-            "what is the nextgen supercomputing club": "We're a student-led club founded in 2025, dedicated to exploring high-performance computing and its applications in AI, scientific simulations, and big data. We offer hands-on learning, access to advanced hardware like NVIDIA DGX systems, and a community of tech enthusiasts. Our motto is 'Compute the Future, Today!'",
+            "what is your name": "My name is Chetak. I'm the AI voice assistant for the NextGen Supercomputing Club.",
+            "aapka naam kya hai": "Mera naam Chetak hai. Main NextGen Supercomputing Club ka AI voice assistant hoon.",
+            "tumhara naam kya hai": "Mera naam Chetak hai.",
+            "what are you called": "I'm called Chetak.",
+            "who are you": "I'm Chetak, your AI assistant for the NextGen Supercomputing Club.",
+            "what is the nextgen supercomputing club": "We're a student-led club founded in 2025, dedicated to exploring high-performance computing and its applications in AI, scientific simulations, and big data. We offer hands-on learning, access to advanced hardware like NVIDIA DGX systems, and a community of tech enthusiasts. Our motto is 'Compute the Future, Today!'.",
             "how to join": "Anyone passionate about computing can join! Students, faculty, and professionals from any discipline are welcome. No prior HPC experience required. Sign up at our inauguration or email nextgenclub@university.edu.",
             "what will the club do": "We host workshops on GPU programming, MPI, quantum computing basics, and provide access to NVIDIA DGX systems. You can work on projects like AI model training, parallel algorithm optimization, or quantum system simulations.",
             "what is supercomputing": "Supercomputing involves using powerful computers to solve complex problems at incredible speeds. Think AI training, climate modeling, or drug discovery. The Frontier supercomputer achieves 1.1 exaFLOPS, performing quintillions of calculations per second!",
@@ -40,7 +45,8 @@ class EnhancedRAG:
             "do i need coding experience": "Not at all! We offer beginner-friendly workshops on Python, CUDA, and MPI. Our community supports all skill levels, from novices to experts.",
             "what resources": "We provide access to NVIDIA DGX systems, cloud HPC platforms, and software like TensorFlow, PyTorch, and OpenMPI. Plus, mentorship from industry experts and faculty members.",
             "whats exascale computing": "Exascale computers perform over a quintillion calculations per second - that's 10 to the 18th power! They're key for AI, physics simulations, and big data analytics.",
-            "why should i care about hpc": "HPC powers breakthroughs in AI, medicine, and climate science. Learning HPC skills opens doors to careers in tech, research, and innovation."
+            "why should i care about hpc": "HPC powers breakthroughs in AI, medicine, and climate science. Learning HPC skills opens doors to careers in tech, research, and innovation.",
+            "tum kaun ho": "Main Chetak hoon, NextGen Supercomputing Club ka AI assistant."
         }
         self.questions_list = list(self.faqs.keys())
         self._update_vectorizer()
@@ -87,7 +93,7 @@ class EnhancedRAG:
         self._save_to_json()
         print(f"✅ Added new FAQ: '{question}'")
     
-    def find_best_match(self, user_question: str, similarity_threshold: float = 0.3) -> Optional[str]:
+    def find_best_match(self, user_question: str, similarity_threshold: float = 0.25) -> Optional[str]:
         """
         Find the best matching FAQ using TF-IDF cosine similarity.
         
