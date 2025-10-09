@@ -9,18 +9,14 @@ const messages = document.getElementById('messages');
 const status = document.getElementById('status');
 const visualizer = document.getElementById('visualizer');
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     initGeminiEffect();
     addMessage('assistant', 'Namaste! I\'m Chetak, your AI assistant. How can I help you today?');
 });
 
-// Gemini Effect Animation
 function initGeminiEffect() {
     const svg = document.querySelector('.gemini-svg');
     if (!svg) return;
-    
-    // Subtle parallax effect on mouse move
     document.addEventListener('mousemove', (e) => {
         const x = (e.clientX / window.innerWidth - 0.5) * 20;
         const y = (e.clientY / window.innerHeight - 0.5) * 20;
@@ -28,25 +24,18 @@ function initGeminiEffect() {
     });
 }
 
-// Microphone button
-micBtn.addEventListener('click', async () => {
-    if (!isRecording) {
-        await startRecording();
-    } else {
-        await stopRecording();
-    }
+micBtn.addEventListener('click', () => {
+    isRecording ? stopRecording() : startRecording();
 });
 
-// Send button
 sendBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
     if (text) {
-        sendTextMessage(text);
+        handleStreamingTextRequest(text);
         textInput.value = '';
     }
 });
 
-// Enter key
 textInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         sendBtn.click();
@@ -58,17 +47,12 @@ async function startRecording() {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
-
-        mediaRecorder.ondataavailable = (event) => {
-            audioChunks.push(event.data);
-        };
-
-        mediaRecorder.onstop = async () => {
+        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+        mediaRecorder.onstop = () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            await sendAudioMessage(audioBlob);
+            handleAudioMessage(audioBlob);
             stream.getTracks().forEach(track => track.stop());
         };
-
         mediaRecorder.start();
         isRecording = true;
         micBtn.classList.add('recording');
@@ -80,24 +64,23 @@ async function startRecording() {
     }
 }
 
-async function stopRecording() {
+function stopRecording() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.stop();
         isRecording = false;
         micBtn.classList.remove('recording');
         hideVisualizer();
-        setStatus('🔄 Processing...');
+        setStatus('🔄 Transcribing...');
     }
 }
 
-async function sendAudioMessage(audioBlob) {
+async function handleAudioMessage(audioBlob) {
     try {
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
             const base64Audio = reader.result;
-
-            const response = await fetch('/api/process', {
+            const response = await fetch('/api/transcribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ audio: base64Audio })
@@ -106,9 +89,8 @@ async function sendAudioMessage(audioBlob) {
             const data = await response.json();
 
             if (response.ok) {
-                addMessage('user', data.transcript);
-                addMessage('assistant', data.response, data.audio);
-                setStatus('');
+                // Once transcribed, handle it like a text message to get a streaming response
+                handleStreamingTextRequest(data.transcript);
             } else {
                 setStatus(`❌ Error: ${data.error}`);
             }
@@ -119,32 +101,71 @@ async function sendAudioMessage(audioBlob) {
     }
 }
 
-async function sendTextMessage(text) {
+async function handleStreamingTextRequest(text) {
     addMessage('user', text);
-    setStatus('🔄 Processing...');
+    setStatus('🤔 Thinking...');
+    const cacheKey = text.toLowerCase().trim();
+
+    // Create a new message element for the assistant's response
+    const assistantMessageContent = addMessage('assistant', '');
 
     try {
-        const response = await fetch('/api/text', {
+        const response = await fetch('/api/text_stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text })
         });
 
-        const data = await response.json();
-
-        if (response.ok) {
-            addMessage('assistant', data.response, data.audio);
-            setStatus('');
-        } else {
-            setStatus(`❌ Error: ${data.error}`);
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.statusText}`);
         }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            assistantMessageContent.textContent += chunk;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        setStatus('');
+        // After text stream is complete, start polling for audio
+        fetchAudio(cacheKey);
+
     } catch (error) {
+        assistantMessageContent.textContent = 'Sorry, I encountered a connection problem.';
         setStatus('❌ Connection error');
         console.error(error);
     }
 }
 
-function addMessage(role, content, audioData = null) {
+async function fetchAudio(cacheKey, retries = 10) {
+    if (retries <= 0) {
+        console.error("Failed to fetch audio after multiple attempts.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/get_audio/${encodeURIComponent(cacheKey)}`);
+        const data = await response.json();
+
+        if (data.status === 'ready' && data.audio !== 'error') {
+            const audio = new Audio(data.audio);
+            audio.play().catch(e => console.error('Audio playback failed:', e));
+        } else if (data.status === 'processing') {
+            setTimeout(() => fetchAudio(cacheKey, retries - 1), 2000); // Wait and retry
+        } else {
+            console.error("Failed to generate or fetch audio:", data.audio);
+        }
+    } catch (error) {
+        console.error("Error in fetchAudio:", error);
+    }
+}
+
+function addMessage(role, content) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${role}`;
 
@@ -159,15 +180,10 @@ function addMessage(role, content, audioData = null) {
     messageDiv.appendChild(avatar);
     messageDiv.appendChild(contentDiv);
     messages.appendChild(messageDiv);
-
-    // Play audio if provided
-    if (audioData) {
-        const audio = new Audio(audioData);
-        audio.play().catch(e => console.error('Audio playback failed:', e));
-    }
-
-    // Scroll to bottom
     messages.scrollTop = messages.scrollHeight;
+
+    // Return the content element so it can be updated by the streamer
+    return contentDiv;
 }
 
 function setStatus(text) {
