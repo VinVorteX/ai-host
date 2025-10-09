@@ -8,27 +8,29 @@ client = OpenAI(
     max_retries=MAX_RETRIES
 )
 
-def ask_chatgpt(question: str, system_prompt: str = SYSTEM_PROMPT) -> str:
+
+def ask_chatgpt_stream(question: str, system_prompt: str = SYSTEM_PROMPT):
     """
-    Get response from ChatGPT with FAQ fallback first.
+    Queries the knowledge base first, falling back to a streaming OpenAI call if no match is found.
+
+    This function is a generator that yields response chunks as they are received.
     
     Args:
-        question: User's question
-        system_prompt: System context
+        question: The user's question.
+        system_prompt: The system prompt to provide context to the model.
         
-    Returns:
-        str: AI response
+    Yields:
+        str: Chunks of the generated response.
     """
-    print("🔍 Checking FAQ database...")
+    print("INFO: Checking knowledge base...")
     
-    # Try enhanced FAQ first
     faq_answer = simple_rag_lookup(question)
     if faq_answer:
-        print("✅ Used enhanced FAQ match.")
-        return faq_answer
-    
-    # Fallback to ChatGPT
-    print("🤖 No FAQ match, querying ChatGPT...")
+        print("INFO: Found a match in the knowledge base.")
+        yield faq_answer
+        return
+
+    print("INFO: No match found. Querying OpenAI model...")
     
     messages = [
         {"role": "system", "content": system_prompt},
@@ -36,36 +38,39 @@ def ask_chatgpt(question: str, system_prompt: str = SYSTEM_PROMPT) -> str:
     ]
     
     try:
-        response = client.chat.completions.create(
+        stream = client.chat.completions.create(
             model=OPENAI_MODEL_CHAT,
             messages=messages,
             max_tokens=MAX_TOKENS,
             temperature=TEMPERATURE,
-            stream=False
+            stream=True
         )
-        text = response.choices[0].message.content.strip()
-        print(f"🤖 ChatGPT response generated.")
-        return text
+        
+        print("INFO: OpenAI stream initiated...")
+        for chunk in stream:
+            content = chunk.choices[0].delta.content
+            if content:
+                yield content
     except Exception as e:
-        print(f"❌ ChatGPT error: {e}")
-        return "I apologize, but I'm having trouble connecting right now. Please try again in a moment."
+        print(f"ERROR: An exception occurred with the OpenAI API: {e}")
+        yield "An error occurred while connecting to the service. Please try again shortly."
 
 def add_new_faq(question: str, answer: str):
     """
-    Add a new FAQ to the knowledge base.
+    Adds a new question-answer pair to the knowledge base.
     
     Args:
-        question: The FAQ question
-        answer: The FAQ answer
+        question: The question to add.
+        answer: The corresponding answer.
     """
     faq_system.add_faq(question, answer)
 
 def get_faq_stats() -> dict:
     """
-    Get statistics about the FAQ system.
+    Retrieves statistics about the knowledge base.
     
     Returns:
-        dict: FAQ statistics
+        A dictionary containing statistics.
     """
     return {
         "total_faqs": faq_system.get_faq_count(),
