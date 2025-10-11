@@ -1,26 +1,27 @@
 import os
 import asyncio
 import tempfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 from config import OPENAI_API_KEY, RECORD_SECONDS
 from audio.recorder import record_to_wav
 from audio.stt import transcribe_with_whisper
-from audio.tts import tts_with_openai, tts_with_pyttsx3
-from ai.chat import ask_chatgpt, add_new_faq, get_faq_stats
-from utils.audio_player import play_audio, check_audio_dependencies
+from audio.tts import tts_with_pyttsx3  # ✅ fast local TTS for low latency
+from ai.chat import ask_chatgpt_stream, get_faq_stats  # ✅ streaming chat
+from utils.audio_player import check_audio_dependencies
 
 
 async def process_interaction():
-    """Process one complete interaction cycle with optimized pipeline"""
-    # Record audio with reduced duration
+    """Process one full interaction cycle with real-time low-latency streaming"""
+    # Record user voice
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpwav:
         wav_path = tmpwav.name
 
     record_to_wav(wav_path, seconds=RECORD_SECONDS)
 
-    # Use thread pool for CPU-bound operations
+    # Use thread pool for CPU-bound tasks
     with ThreadPoolExecutor(max_workers=2) as executor:
-        # Transcribe
+        # Speech to text (Whisper)
         try:
             user_text = await asyncio.get_event_loop().run_in_executor(
                 executor, transcribe_with_whisper, wav_path
@@ -35,52 +36,39 @@ async def process_interaction():
             os.unlink(wav_path)
             return None
 
-        print(f"🎯 User question: '{user_text}'")
+        print(f"\n🎯 User question: '{user_text}'")
 
-        # Generate response (RAG-powered) - run in executor for better performance
-        response_text = await asyncio.get_event_loop().run_in_executor(
-            executor, ask_chatgpt, user_text
-        )
-
-    # Generate TTS concurrently with cleanup
+    # Delete temp audio asynchronously
     cleanup_task = asyncio.create_task(asyncio.to_thread(os.unlink, wav_path))
-    
-    out_audio = None
+
+    # --- STREAMING RESPONSE PHASE ---
+    print("\n🧠 Streaming AI response (real-time, low latency)...\n")
+    response_chunks = []
+    last_speak_time = 0.0
+    speak_delay = 0.25  # small delay for smooth speech pacing
+
     try:
-        # Try OpenAI TTS first
-        tts_out = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False).name
-        await tts_with_openai(response_text, tts_out)
-        out_audio = tts_out
+        for chunk in ask_chatgpt_stream(user_text):
+            if not chunk:
+                continue
+
+            # 🧩 show text in real-time
+            print(chunk, end="", flush=True)
+            response_chunks.append(chunk)
+
+            # 🗣️ speak with minimal latency
+            now = time.time()
+            if now - last_speak_time > speak_delay:
+                await asyncio.to_thread(tts_with_pyttsx3, chunk)
+                last_speak_time = now
+
+        print("\n\n✅ Response complete!\n")
+
     except Exception as e:
-        print("❌ OpenAI TTS failed, trying pyttsx3...")
-        try:
-            tts_out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
-            with ThreadPoolExecutor() as executor:
-                await asyncio.get_event_loop().run_in_executor(
-                    executor, tts_with_pyttsx3, response_text, tts_out
-                )
-            out_audio = tts_out
-        except Exception as e2:
-            print(f"❌ All TTS methods failed: {e2}")
-            print("📝 Response text:")
-            print(response_text)
-            await cleanup_task
-            return response_text
+        print(f"\n❌ Streaming error: {e}")
 
-    # Play audio and cleanup concurrently
-    if out_audio:
-        play_task = asyncio.create_task(asyncio.to_thread(play_audio, out_audio))
-        await asyncio.gather(play_task, cleanup_task, return_exceptions=True)
-        
-        # Cleanup TTS file
-        try:
-            os.unlink(out_audio)
-        except Exception:
-            pass
-    else:
-        await cleanup_task
-
-    return response_text
+    await cleanup_task
+    return "".join(response_chunks)
 
 
 def show_faq_stats():
@@ -88,22 +76,21 @@ def show_faq_stats():
     stats = get_faq_stats()
     print(f"\n📊 FAQ System Stats:")
     print(f"   Total FAQs: {stats['total_faqs']}")
-    print(
-        f"   Questions: {', '.join(stats['faq_questions'][:3])}..."
-        if stats["faq_questions"]
-        else "   No FAQs"
-    )
+    if stats["faq_questions"]:
+        print(f"   Sample questions: {', '.join(stats['faq_questions'][:3])}...")
+    else:
+        print("   No FAQs found.")
 
 
 async def main_loop():
-    """Main application loop"""
+    """Main voice assistant loop"""
     print("=== NextGen Supercomputing Club — Enhanced RAG AI Host ===")
-    print("🚀 Now with smart FAQ matching using TF-IDF!")
+    print("🚀 Real-time streaming AI with ultra-low latency response!\n")
 
     available_players = check_audio_dependencies()
     if not available_players:
-        print("❌ WARNING: No audio players detected. Audio playback may not work.")
-        print("💡 Install: sudo dnf install mpg123 ffmpeg vlc alsa-utils")
+        print("⚠️ No audio players detected. Audio playback may not work.")
+        print("💡 Install: sudo apt install mpg123 ffmpeg vlc alsa-utils")
     else:
         print(f"✅ Audio players available: {', '.join(available_players)}")
 
@@ -134,14 +121,13 @@ if __name__ == "__main__":
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY environment variable not set")
 
-    # Check if scikit-learn is available for TF-IDF
     try:
         import sklearn
         print("✅ Enhanced RAG system ready!")
     except ImportError:
-        print("❌ scikit-learn not installed. Installing...")
+        print("⚠️ scikit-learn not found, installing...")
         import subprocess
         subprocess.check_call(["pip", "install", "scikit-learn"])
-        print("✅ scikit-learn installed!")
+        print("✅ scikit-learn installed successfully!")
 
     asyncio.run(main_loop())
