@@ -1,0 +1,25 @@
+# Files to be committed:
+
+## Modified Core Files:
+- app.py (FastAPI migration)
+- config.py (Riva name, updated prompts)
+- requirements.txt (FastAPI dependencies)
+- README.md (Updated docs)
+
+## New Files:
+- frontend/ (React app with JARVIS UI)
+- start.py (FastAPI startup)
+- start_dev.sh (Dev mode script)
+- security_config.py (Security settings)
+
+## Deleted Files:
+- static/ (old HTML/CSS/JS)
+- templates/ (old Jinja templates)
+- run.bat (Windows script)
+- test_name.py (test file)
+
+## Protected Files (ignored):
+- .env (API keys)
+- env/ (virtual environment)
+- __pycache__/ (Python cache)
+- node_modules/ (npm packages)

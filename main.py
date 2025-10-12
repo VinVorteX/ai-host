@@ -28,7 +28,10 @@ async def process_interaction():
             )
         except Exception as e:
             print(f"❌ Transcription failed: {e}")
-            os.unlink(wav_path)
+            try:
+                os.unlink(wav_path)
+            except OSError:
+                pass
             return None
 
         if not user_text:
@@ -125,9 +128,7 @@ if __name__ == "__main__":
         import sklearn
         print("✅ Enhanced RAG system ready!")
     except ImportError:
-        print("⚠️ scikit-learn not found, installing...")
-        import subprocess
-        subprocess.check_call(["pip", "install", "scikit-learn"])
-        print("✅ scikit-learn installed successfully!")
+        print("⚠️ scikit-learn not found. Please install: pip install scikit-learn")
+        exit(1)
 
     asyncio.run(main_loop())

@@ -1,0 +1,191 @@
+.app {
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.jarvis-container {
+  position: relative;
+  width: 400px;
+  height: 400px;
+}
+
+.jarvis-circle {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle-ring {
+  position: absolute;
+  border: 2px solid rgba(0, 150, 255, 0.3);
+  border-radius: 50%;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.ring-1 {
+  width: 100px;
+  height: 100px;
+  animation-delay: 0s;
+}
+
+.ring-2 {
+  width: 150px;
+  height: 150px;
+  animation-delay: 0.3s;
+}
+
+.ring-3 {
+  width: 200px;
+  height: 200px;
+  animation-delay: 0.6s;
+}
+
+.ring-4 {
+  width: 250px;
+  height: 250px;
+  animation-delay: 0.9s;
+}
+
+.ring-5 {
+  width: 300px;
+  height: 300px;
+  animation-delay: 1.2s;
+}
+
+.jarvis-circle.active .circle-ring {
+  border-color: rgba(255, 50, 50, 0.6);
+  animation: activePulse 1s ease-in-out infinite;
+}
+
+.jarvis-circle.processing .circle-ring {
+  border-color: rgba(0, 255, 150, 0.6);
+  animation: processingPulse 0.8s ease-in-out infinite;
+}
+
+.jarvis-core {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid #0096ff;
+  background: radial-gradient(circle, rgba(0, 150, 255, 0.2) 0%, rgba(0, 0, 0, 0.8) 70%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 0 30px rgba(0, 150, 255, 0.5),
+              inset 0 0 20px rgba(0, 150, 255, 0.3);
+}
+
+.jarvis-core:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 50px rgba(0, 150, 255, 0.8),
+              inset 0 0 30px rgba(0, 150, 255, 0.5);
+}
+
+.jarvis-circle.active .jarvis-core {
+  border-color: #ff3232;
+  box-shadow: 0 0 30px rgba(255, 50, 50, 0.8),
+              inset 0 0 20px rgba(255, 50, 50, 0.5);
+}
+
+.jarvis-circle.processing .jarvis-core {
+  border-color: #00ff96;
+  box-shadow: 0 0 30px rgba(0, 255, 150, 0.8),
+              inset 0 0 20px rgba(0, 255, 150, 0.5);
+}
+
+.core-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 150, 255, 0.1) 0%, transparent 70%);
+}
+
+.riva-text {
+  font-family: 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: bold;
+  color: #0096ff;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px rgba(0, 150, 255, 0.8),
+               0 0 20px rgba(0, 150, 255, 0.5);
+}
+
+.jarvis-circle.active .riva-text {
+  color: #ff3232;
+  text-shadow: 0 0 10px rgba(255, 50, 50, 0.8),
+               0 0 20px rgba(255, 50, 50, 0.5);
+}
+
+.jarvis-circle.processing .riva-text {
+  color: #00ff96;
+  text-shadow: 0 0 10px rgba(0, 255, 150, 0.8),
+               0 0 20px rgba(0, 255, 150, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.6;
+  }
+}
+
+@keyframes activePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes processingPulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .jarvis-container {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .ring-1 { width: 80px; height: 80px; }
+  .ring-2 { width: 120px; height: 120px; }
+  .ring-3 { width: 160px; height: 160px; }
+  .ring-4 { width: 200px; height: 200px; }
+  .ring-5 { width: 240px; height: 240px; }
+  
+  .jarvis-core {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .riva-text {
+    font-size: 20px;
+    letter-spacing: 3px;
+  }
+}

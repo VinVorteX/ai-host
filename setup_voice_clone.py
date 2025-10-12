@@ -7,7 +7,8 @@ def setup_voice():
     """Interactive setup for voice cloning"""
     print("=== Voice Cloning Setup ===\n")
     
-    api_key = input("Enter your ElevenLabs API key: ").strip()
+    import getpass
+    api_key = getpass.getpass("Enter your ElevenLabs API key: ").strip()
     if not api_key:
         print("❌ API key required")
         return
@@ -37,7 +38,7 @@ def setup_voice():
         voice_id = create_cloned_voice(name, audio_files)
         print(f"\n✅ Voice cloned successfully!")
         print(f"\nAdd to your .env file:")
-        print(f"ELEVENLABS_API_KEY={api_key}")
+        print(f"ELEVENLABS_API_KEY={api_key[:8]}...{api_key[-4:]}")
         print(f"ELEVENLABS_VOICE_ID={voice_id}")
         print(f"USE_VOICE_CLONE=true")
     except Exception as e:

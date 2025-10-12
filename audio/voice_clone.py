@@ -29,10 +29,16 @@ def clone_voice_tts(text: str, output_path: str, voice_id: Optional[str] = None)
     response = requests.post(url, json=data, headers=headers, timeout=10)
     response.raise_for_status()
     
-    with open(output_path, 'wb') as f:
-        f.write(response.content)
+    # Validate output path to prevent path traversal
+    if '..' in output_path or not output_path.endswith(('.mp3', '.wav')):
+        raise ValueError("Invalid output path")
     
-    return output_path
+    try:
+        with open(output_path, 'wb') as f:
+            f.write(response.content)
+        return output_path
+    except Exception as e:
+        raise IOError(f"Failed to write audio file: {e}")
 
 def create_cloned_voice(name: str, audio_files: list) -> str:
     """Create a new cloned voice from audio samples"""
@@ -42,13 +48,22 @@ def create_cloned_voice(name: str, audio_files: list) -> str:
     url = "https://api.elevenlabs.io/v1/voices/add"
     headers = {"xi-api-key": ELEVENLABS_API_KEY}
     
-    files = [('files', open(f, 'rb')) for f in audio_files]
-    data = {'name': name}
+    # Validate audio files
+    for f in audio_files:
+        if not os.path.isfile(f) or '..' in f:
+            raise ValueError(f"Invalid audio file path: {f}")
     
-    response = requests.post(url, headers=headers, data=data, files=files, timeout=30)
-    response.raise_for_status()
-    
-    for _, f in files:
-        f.close()
+    files = []
+    try:
+        files = [('files', open(f, 'rb')) for f in audio_files]
+        data = {'name': name}
+        
+        response = requests.post(url, headers=headers, data=data, files=files, timeout=30)
+        response.raise_for_status()
+        
+        return response.json()['voice_id']
+    finally:
+        for _, f in files:
+            f.close()
     
     return response.json()['voice_id']

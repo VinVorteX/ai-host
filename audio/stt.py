@@ -1,3 +1,4 @@
+import os
 from openai import OpenAI
 from config import OPENAI_API_KEY, WHISPER_MODEL, HTTP_TIMEOUT, MAX_RETRIES
 
@@ -18,6 +19,11 @@ def transcribe_with_whisper(wav_path):
         str: Transcribed text
     """
     print("🔄 Transcribing with OpenAI Whisper...")
+    
+    # Validate file path to prevent path traversal
+    if not os.path.isfile(wav_path) or '..' in wav_path:
+        raise ValueError("Invalid file path")
+    
     try:
         with open(wav_path, "rb") as audio_file:
             transcription = client.audio.transcriptions.create(

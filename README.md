@@ -1,6 +1,6 @@
-# 🐴 Chetak - NextGen AI Assistant
+# 🤖 Riva - NextGen AI Assistant
 
-Chetak is an intelligent voice-powered AI assistant with RAG (Retrieval-Augmented Generation), voice cloning, and ultra-low latency. Built for the NextGen Supercomputing Club.
+Riva is an intelligent voice-powered AI assistant with RAG (Retrieval-Augmented Generation), voice cloning, and ultra-low latency. Built for the NextGen Supercomputing Club.
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -51,23 +51,40 @@ python main.py
 
 ### Run Web UI
 
+**Development Mode (React + FastAPI):**
 ```bash
-python app.py
-# Open http://localhost:5000 - Main assistant
-# Open http://localhost:5000/demo - Gemini effect demo
+# Install frontend dependencies first
+cd frontend && npm install && cd ..
+
+# Start both servers
+./start_dev.sh
+
+# Frontend: http://localhost:3000
+# Backend:  http://localhost:5000
+# API Docs: http://localhost:5000/docs
+```
+
+**Production Mode:**
+```bash
+# Build React frontend
+cd frontend && npm run build && cd ..
+
+# Start FastAPI server
+python start.py
+# Open http://localhost:5000
 ```
 
 ## 🎨 Web Interface
 
-Modern, responsive UI with:
+Modern React frontend with:
+- **⚛️ React 18** with Hooks and modern patterns
+- **⚡ Vite** for lightning-fast development
 - **Google Gemini-style animated background** with glowing SVG paths
 - Voice visualization during recording
-- Real-time transcription display
+- Real-time streaming responses
 - Animated AI responses
 - Parallax mouse effects
-- Mobile-friendly design
-
-Visit `/demo` for the full Gemini effect showcase!
+- Fully responsive design
 
 ## 🔧 Configuration
 
@@ -119,7 +136,8 @@ nextgen/
 ├── static/            # Web UI assets
 ├── templates/         # HTML templates
 ├── main.py           # CLI application
-├── app.py            # Web application
+├── app.py            # FastAPI web application
+├── start.py          # Production startup script
 └── config.py         # Configuration
 ```
 
@@ -244,4 +262,4 @@ MIT License - see LICENSE file
 
 ---
 
-**Built with ❤️ for the NextGen Supercomputing Club**
+**Built with ❤️ by NextGen Supercomputing Club**

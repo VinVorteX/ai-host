@@ -142,6 +142,10 @@ def play_audio(path):
 
 def try_system_players(path):
     """Try using system audio players - cross-platform"""
+    # Validate path to prevent injection attacks
+    if not os.path.isfile(path) or '..' in path or '|' in path or ';' in path:
+        return False
+    
     try:
         if OS_TYPE == "Windows":
             # Windows: Use built-in media player
@@ -153,19 +157,29 @@ def try_system_players(path):
             return True
         
         else:  # Linux
+            # Validate path to prevent injection
+            if not os.path.isfile(path) or '..' in path:
+                return False
+            
             if path.endswith('.mp3'):
                 for player in ['mpg123', 'ffplay', 'cvlc']:
-                    if subprocess.run([COMMAND, player], capture_output=True).returncode == 0:
-                        cmd = {'mpg123': ['mpg123', '-q', path],
-                               'ffplay': ['ffplay', '-autoexit', '-nodisp', path],
-                               'cvlc': ['cvlc', '--play-and-exit', path]}[player]
-                        subprocess.run(cmd, check=True)
-                        return True
+                    try:
+                        if subprocess.run([COMMAND, player], capture_output=True, timeout=5).returncode == 0:
+                            cmd = {'mpg123': ['mpg123', '-q', path],
+                                   'ffplay': ['ffplay', '-autoexit', '-nodisp', path],
+                                   'cvlc': ['cvlc', '--play-and-exit', path]}[player]
+                            subprocess.run(cmd, check=True, timeout=30)
+                            return True
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+                        continue
             else:
                 for player in ['aplay', 'paplay', 'play']:
-                    if subprocess.run([COMMAND, player], capture_output=True).returncode == 0:
-                        subprocess.run([player, path], check=True)
-                        return True
+                    try:
+                        if subprocess.run([COMMAND, player], capture_output=True, timeout=5).returncode == 0:
+                            subprocess.run([player, path], check=True, timeout=30)
+                            return True
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+                        continue
         return False
     except Exception as e:
         print(f"❌ System player error: {e}")
