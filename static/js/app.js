@@ -11,7 +11,7 @@ const visualizer = document.getElementById('visualizer');
 
 document.addEventListener('DOMContentLoaded', () => {
     initGeminiEffect();
-    addMessage('assistant', 'Namaste! I\'m Chetak, your AI assistant. How can I help you today?');
+    addMessage('assistant', 'Namaste! I\'m Riva, your AI assistant. How can I help you today?');
 });
 
 function initGeminiEffect() {

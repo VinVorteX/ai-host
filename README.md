@@ -1,6 +1,6 @@
-# 🐴 Chetak - NextGen AI Assistant
+# Riva - NextGen AI Assistant
 
-Chetak is an intelligent voice-powered AI assistant with RAG (Retrieval-Augmented Generation), voice cloning, and ultra-low latency. Built for the NextGen Supercomputing Club.
+Riva is an intelligent voice-powered AI assistant with RAG (Retrieval-Augmented Generation), voice cloning, and ultra-low latency. Built for the NextGen Supercomputing Club.
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
