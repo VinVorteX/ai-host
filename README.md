@@ -3,6 +3,8 @@
 Riva is an intelligent voice-powered AI assistant with RAG (Retrieval-Augmented Generation), voice cloning, and ultra-low latency. Built for the NextGen Supercomputing Club.
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)
+![React](https://img.shields.io/badge/React-18.2+-61dafb.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -13,14 +15,16 @@ Riva is an intelligent voice-powered AI assistant with RAG (Retrieval-Augmented 
 - 🗣️ **Voice Cloning** - Clone any voice using ElevenLabs API
 - ⚡ **Ultra-Low Latency** - Optimized pipeline with concurrent processing
 - 🌐 **Cross-Platform** - Works on Windows, Linux, and macOS
-- 🎨 **Modern Web UI** - Alexa/Gemini-style interface
+- 🎨 **JARVIS-Style UI** - Circular wave animations with React
 - 🔄 **Fallback Systems** - Multiple TTS/STT options for reliability
+- 🚀 **FastAPI Backend** - High-performance async API
 
 ## 🎯 Quick Start
 
 ### Prerequisites
 
 - Python 3.8+
+- Node.js 16+ (for React frontend)
 - OpenAI API key
 - Microphone access
 
@@ -29,34 +33,27 @@ Riva is an intelligent voice-powered AI assistant with RAG (Retrieval-Augmented 
 ```bash
 # Clone repository
 git clone <your-repo-url>
-cd nextgen
+cd ai-host
 
 # Create virtual environment
 python -m venv env
 source env/bin/activate  # On Windows: env\Scripts\activate
 
-# Install dependencies
+# Install Python dependencies
 pip install -r requirements.txt
+
+# Install frontend dependencies
+cd frontend && npm install && cd ..
 
 # Setup environment
 cp .env.example .env
 # Edit .env and add your OPENAI_API_KEY2
 ```
 
-### Run CLI Version
+### Run Development Mode
 
 ```bash
-python main.py
-```
-
-### Run Web UI
-
-**Development Mode (React + FastAPI):**
-```bash
-# Install frontend dependencies first
-cd frontend && npm install && cd ..
-
-# Start both servers
+# Start both backend and frontend
 ./start_dev.sh
 
 # Frontend: http://localhost:3000
@@ -64,7 +61,8 @@ cd frontend && npm install && cd ..
 # API Docs: http://localhost:5000/docs
 ```
 
-**Production Mode:**
+### Run Production Mode
+
 ```bash
 # Build React frontend
 cd frontend && npm run build && cd ..
@@ -76,15 +74,14 @@ python start.py
 
 ## 🎨 Web Interface
 
-Modern React frontend with:
+Modern React frontend with JARVIS-style animations:
 - **⚛️ React 18** with Hooks and modern patterns
 - **⚡ Vite** for lightning-fast development
-- **Google Gemini-style animated background** with glowing SVG paths
-- Voice visualization during recording
-- Real-time streaming responses
-- Animated AI responses
-- Parallax mouse effects
-- Fully responsive design
+- **🎯 JARVIS-style circular waves** - Blue (idle), Red (recording), Green (processing)
+- **💫 Glowing "RIVA" text** in center
+- **🎤 Voice recording** with visual feedback
+- **🔊 Real-time streaming** responses
+- **📱 Fully responsive** design
 
 ## 🔧 Configuration
 
@@ -100,9 +97,9 @@ ELEVENLABS_VOICE_ID=your_voice_id
 USE_VOICE_CLONE=true
 
 # Performance Tuning
-RECORD_SECONDS=4
-MAX_TOKENS=150
-TEMPERATURE=0.3
+RECORD_SECONDS=3
+MAX_TOKENS=100
+TEMPERATURE=0.2
 ```
 
 ## 🗣️ Voice Cloning Setup
@@ -122,7 +119,7 @@ See [VOICE_CLONE_SETUP.md](VOICE_CLONE_SETUP.md) for details.
 ## 📁 Project Structure
 
 ```
-nextgen/
+ai-host/
 ├── ai/                 # AI & RAG logic
 │   ├── chat.py        # ChatGPT integration
 │   └── knowledge.py   # FAQ system with TF-IDF
@@ -131,22 +128,32 @@ nextgen/
 │   ├── stt.py         # Speech-to-text
 │   ├── tts.py         # Text-to-speech
 │   └── voice_clone.py # Voice cloning
+├── frontend/          # React frontend
+│   ├── src/
+│   │   ├── App.jsx    # Main app with JARVIS UI
+│   │   └── styles/    # CSS files
+│   ├── package.json
+│   └── vite.config.js
 ├── utils/             # Utilities
 │   └── audio_player.py # Cross-platform audio playback
-├── static/            # Web UI assets
-├── templates/         # HTML templates
-├── main.py           # CLI application
-├── app.py            # FastAPI web application
+├── app.py            # FastAPI application
 ├── start.py          # Production startup script
+├── start_dev.sh      # Development startup script
 └── config.py         # Configuration
 ```
 
-## 🎯 Usage Examples
+## 🎯 Usage
+
+### Web Mode
+
+1. Open browser to `http://localhost:3000` (dev) or `http://localhost:5000` (prod)
+2. Click the center RIVA button
+3. Speak your question
+4. Get instant AI response with voice
 
 ### CLI Mode
 
 ```bash
-# Start assistant
 python main.py
 
 # Options:
@@ -154,13 +161,6 @@ python main.py
 # 2. Show FAQ stats
 # 3. Exit
 ```
-
-### Web Mode
-
-1. Open browser to `http://localhost:5000`
-2. Click microphone button
-3. Speak your question
-4. Get instant AI response with voice
 
 ### API Mode
 
@@ -194,7 +194,8 @@ sudo pacman -S mpg123 ffmpeg alsa-utils
 
 ## ⚡ Performance Optimizations
 
-- **4-second recording** (reduced from 6s)
+- **FastAPI** - 40-60% faster than Flask
+- **3-second recording** for quick responses
 - **gpt-4o-mini** for 3x faster responses
 - **Connection pooling** for API calls
 - **Concurrent processing** with ThreadPoolExecutor
@@ -237,6 +238,12 @@ add_new_faq(
 )
 ```
 
+## 🚀 API Documentation
+
+FastAPI provides automatic interactive API docs:
+- **Swagger UI**: http://localhost:5000/docs
+- **ReDoc**: http://localhost:5000/redoc
+
 ## 🤝 Contributing
 
 Contributions welcome! Please:
@@ -252,6 +259,8 @@ MIT License - see LICENSE file
 
 - OpenAI for GPT-4 and Whisper
 - ElevenLabs for voice cloning
+- FastAPI for high-performance backend
+- React for modern frontend
 - NextGen Supercomputing Club
 
 ## 📧 Support
