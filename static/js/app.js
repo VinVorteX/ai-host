@@ -37,9 +37,7 @@ sendBtn.addEventListener('click', () => {
 });
 
 textInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        sendBtn.click();
-    }
+    if (e.key === 'Enter') sendBtn.click();
 });
 
 async function startRecording() {
@@ -89,7 +87,6 @@ async function handleAudioMessage(audioBlob) {
             const data = await response.json();
 
             if (response.ok) {
-                // Once transcribed, handle it like a text message to get a streaming response
                 handleStreamingTextRequest(data.transcript);
             } else {
                 setStatus(`❌ Error: ${data.error}`);
@@ -106,7 +103,7 @@ async function handleStreamingTextRequest(text) {
     setStatus('🤔 Thinking...');
     const cacheKey = text.toLowerCase().trim();
 
-    // Create a new message element for the assistant's response
+    // Placeholder for assistant message
     const assistantMessageContent = addMessage('assistant', '');
 
     try {
@@ -116,9 +113,7 @@ async function handleStreamingTextRequest(text) {
             body: JSON.stringify({ text })
         });
 
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -132,8 +127,7 @@ async function handleStreamingTextRequest(text) {
         }
 
         setStatus('');
-        // After text stream is complete, start polling for audio
-        fetchAudio(cacheKey);
+        fetchAudio(cacheKey); // Fetch audio after text stream ends
 
     } catch (error) {
         assistantMessageContent.textContent = 'Sorry, I encountered a connection problem.';
@@ -153,10 +147,25 @@ async function fetchAudio(cacheKey, retries = 10) {
         const data = await response.json();
 
         if (data.status === 'ready' && data.audio !== 'error') {
-            const audio = new Audio(data.audio);
-            audio.play().catch(e => console.error('Audio playback failed:', e));
+            // 🧠 FIXED: Convert Base64 to Blob to avoid "NotSupportedError"
+            if (data.audio.startsWith('data:audio')) {
+                const base64 = data.audio.split(',')[1];
+                const binary = atob(base64);
+                const array = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+                const blob = new Blob([array], { type: 'audio/mp3' });
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                audio.play().catch(e => console.error('Audio playback failed:', e));
+            } else {
+                // if backend returns URL, play directly
+                const audio = new Audio(data.audio);
+                audio.play().catch(e => console.error('Audio playback failed:', e));
+            }
+
         } else if (data.status === 'processing') {
-            setTimeout(() => fetchAudio(cacheKey, retries - 1), 2000); // Wait and retry
+            // Retry after 2s if audio still generating
+            setTimeout(() => fetchAudio(cacheKey, retries - 1), 2000);
         } else {
             console.error("Failed to generate or fetch audio:", data.audio);
         }
@@ -182,7 +191,6 @@ function addMessage(role, content) {
     messages.appendChild(messageDiv);
     messages.scrollTop = messages.scrollHeight;
 
-    // Return the content element so it can be updated by the streamer
     return contentDiv;
 }
 
